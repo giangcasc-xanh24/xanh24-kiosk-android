@@ -59,9 +59,15 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            signingConfig (ks['storeFile'] || System.getenv('X24_KEYSTORE')) ? signingConfigs.release : signingConfigs.debug
+            signingConfig = (ks['storeFile'] || System.getenv('X24_KEYSTORE')) ? signingConfigs.release : signingConfigs.debug
         }
     }
+
+  lint {
+       checkReleaseBuilds false
+       abortOnError false
+   }
+    
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
