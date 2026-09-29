@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tên ứng dụng khai báo theo từng bản trong app/build.gradle (resValue app_name) -->
+    <string name="admin_label" translatable="false">Xanh24 Kiosk</string>
+    <string name="admin_desc" translatable="false">Cho phép Xanh24 Kiosk khóa màn hình ở chế độ kiosk</string>
+</resources>

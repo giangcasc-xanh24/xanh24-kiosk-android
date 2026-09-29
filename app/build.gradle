@@ -1,0 +1,76 @@
+plugins {
+    id 'com.android.application'
+}
+
+/*
+ * Xanh24 Kiosk 2.0 – một mã nguồn, 6 bản cài:
+ *   universal → "Xanh24 Kiosk"        : dùng chung, chọn bệnh viện khi cài đặt lần đầu (đổi lại cần PIN)
+ *   pstw  → "Xanh24 Kiosk PSTW"       : chỉ Bệnh viện Phụ sản Trung ương
+ *   pshn  → "Xanh24 Kiosk PSHN"       : chỉ Bệnh viện Phụ sản Hà Nội
+ *   sph   → "Xanh24 Kiosk Xanh Pôn"   : chỉ Bệnh viện Đa khoa Xanh Pôn
+ *   vmtc  → "Xanh24 Kiosk Vinmec"     : chỉ Vinmec Times City
+ *   pdg   → "Xanh24 Kiosk Phương Đông": chỉ Bệnh viện Đa khoa Phương Đông
+ * Lệnh: ./gradlew assembleUniversalRelease  hoặc  assemblePdgRelease … (xem HUONG-DAN-TAO-VA-CAI-APK.md)
+ */
+def ks = new Properties()
+def ksFile = rootProject.file('keystore.properties')
+if (ksFile.exists()) ks.load(new FileInputStream(ksFile))
+
+android {
+    namespace 'vn.xanh24.kiosk'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "vn.xanh24.kiosk"
+        minSdk 26          // Android 8.0 trở lên
+        targetSdk 34
+        versionCode 20
+        versionName "2.0.0"
+    }
+
+    buildFeatures { buildConfig true }
+
+    flavorDimensions = ["hospital"]
+    productFlavors {
+        universal { dimension "hospital"; applicationIdSuffix ".all";  buildConfigField "String", "LOCKED_TENANT", '""';      resValue "string", "app_name", "Xanh24 Kiosk" }
+        pstw { dimension "hospital"; applicationIdSuffix ".pstw"; buildConfigField "String", "LOCKED_TENANT", '"pstw"';  resValue "string", "app_name", "Xanh24 Kiosk PSTW" }
+        pshn { dimension "hospital"; applicationIdSuffix ".pshn"; buildConfigField "String", "LOCKED_TENANT", '"pshn"';  resValue "string", "app_name", "Xanh24 Kiosk PSHN" }
+        sph  { dimension "hospital"; applicationIdSuffix ".sph";  buildConfigField "String", "LOCKED_TENANT", '"sph"';   resValue "string", "app_name", "Xanh24 Kiosk Xanh Pôn" }
+        vmtc { dimension "hospital"; applicationIdSuffix ".vmtc"; buildConfigField "String", "LOCKED_TENANT", '"vmtc"';  resValue "string", "app_name", "Xanh24 Kiosk Vinmec" }
+        pdg  { dimension "hospital"; applicationIdSuffix ".pdg";  buildConfigField "String", "LOCKED_TENANT", '"pdg"';   resValue "string", "app_name", "Xanh24 Kiosk Phương Đông" }
+    }
+
+    signingConfigs {
+        release {
+            if (ks['storeFile']) {
+                storeFile rootProject.file(ks['storeFile'])
+                storePassword ks['storePassword']
+                keyAlias ks['keyAlias']
+                keyPassword ks['keyPassword']
+            } else if (System.getenv('X24_KEYSTORE')) {       // GitHub Actions
+                storeFile file(System.getenv('X24_KEYSTORE'))
+                storePassword System.getenv('X24_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('X24_KEY_ALIAS')
+                keyPassword System.getenv('X24_KEY_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig (ks['storeFile'] || System.getenv('X24_KEYSTORE')) ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    applicationVariants.all { v ->
+        v.outputs.all { outputFileName = "Xanh24-Kiosk-${v.flavorName}-${v.versionName}-${v.buildType.name}.apk" }
+    }
+}
+
+dependencies {
+    implementation 'androidx.webkit:webkit:1.11.0'
+}
